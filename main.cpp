@@ -26,6 +26,7 @@ struct Result {
 // Bellman-Ford Template
 // 功能：計算 source 到所有點的最短路徑
 // ==============================
+
 Result bellmanFord(int n, const vector<Edge>& edges, int source) {
     const int INF = numeric_limits<int>::max() / 2;
 
@@ -33,6 +34,38 @@ Result bellmanFord(int n, const vector<Edge>& edges, int source) {
     res.dist.assign(n, INF);
     res.parent.assign(n, -1);
     res.hasNegativeCycle = false;
+
+    // Step 1. 初始化 source 的距離為 0
+    res.dist[source] = 0;
+
+    // Step 2. 進行 n-1 輪鬆弛 relaxation
+    for (int i = 0; i < n - 1; i++) {
+        for (const auto& edge : edges) {
+            int u = edge.u;
+            int v = edge.v;
+            int w = edge.w;
+
+            if (res.dist[u] != INF && res.dist[u] + w < res.dist[v]) {
+                res.dist[v] = res.dist[u] + w;
+                res.parent[v] = u;
+            }
+        }
+    }
+
+    // Step 3. 再檢查一次是否有負環
+    for (const auto& edge : edges) {
+        int u = edge.u;
+        int v = edge.v;
+        int w = edge.w;
+
+        if (res.dist[u] != INF && res.dist[u] + w < res.dist[v]) {
+            res.hasNegativeCycle = true;
+            break;
+        }
+    }
+
+    return res;
+}
 
     // TODO:
     // Step 1. 初始化 source 的距離為 0
@@ -63,6 +96,20 @@ Result bellmanFord(int n, const vector<Edge>& edges, int source) {
 // 例如：0 -> 2 -> 1 -> 3 -> 5
 // ==============================
 void printPath(const vector<int>& parent, int target) {
+    if (target == -1) {
+        return;
+    }
+
+    if (parent[target] == -1) {
+        cout << target;
+        return;
+    }
+
+    printPath(parent, parent[target]);
+    cout << " -> " << target;
+}
+                                                       
+
     // TODO:
     // 若 target == -1，直接 return
     // 否則先遞迴印 parent[target]
@@ -111,6 +158,8 @@ int main() {
         } else {
             cout << ans.dist[target] << "\n";
             cout << "Path: ";
+            printPath(ans.parent, target);
+cout << "\n";
             // TODO:
             // 呼叫 printPath(ans.parent, target);
             cout << "\n";
